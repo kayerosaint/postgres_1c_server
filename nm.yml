@@ -1,0 +1,15 @@
+# Let NetworkManager manage all devices on this system
+#MYCONFIG
+network:
+  ethernets:
+    ens32:
+      dhcp4: no
+      addresses: [ 0.0.0.0/0, 0.0.0.0/0 ]
+      routes:
+       - to: default
+         via: 0.0.0.0
+         on-link: true
+      nameservers:
+        addresses: [ 0.0.0.0, 0.0.0.0 ]
+  version: 2
+  renderer: NetworkManager
