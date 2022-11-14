@@ -63,54 +63,64 @@ touch='if [ 1 == 1 ]; then sudo touch $1; fi'
 # Set HostName
 echo -e "$Cyan \n Set hostname $Color_Off"
 sleep 1 ; sudo hostnamectl set-hostname $HOSTNAME &&
-#############in_dev################
-COUNTER_1=$(echo -e "SET HOSTNAME: $Green SUCCESS $Color_Off") || COUNTER_1=$(echo -e "SET HOSTNAME: $Red FALSE $Color_Off")
-#############in_dev################
+
+hostnamectl | grep $HOSTNAME &>/dev/null && if echo "*1c.*" &>/dev/null ; then
+  COUNTER_1=$(echo -e "SET HOSTNAME: $Green SUCCESS $Color_Off")
+else
+  COUNTER_1=$(echo -e "SET HOSTNAME: $Red FALSE $Color_Off")
+fi
 echo -e "$Green \n Done $Color_Off" ; sleep 1
 
 # Edit host file
 echo -e "$Cyan \n Editing host file $Color_Off"
-{ if [ -d "$TEMP_FILE" ]; then
+if [ -d "$TEMP_FILE" ]; then
     echo "$TEMP_FILE already exist!"
   elif [ ! -d "$TEMP_FILE" ]; then
     sudo touch $TEMP_FILE && sudo chmod 0777 $TEMP_FILE & echo "" > $TEMP_FILE
   fi
 sudo chmod 0777 /etc/hosts && echo "" > $TEMP_FILE ;
-awk -F '=' 'function t(s){gsub(/[[:space:]]/,"",s);return s};/^MAIN_IP/{m=t($2)};/^HOSTNAME/{h=t($2)};END{printf "%s   %s\n",m,h}' $CUR_DIR/env >> /etc/hosts ;
-awk -F '=' 'function t(s){gsub(/[[:space:]]/,"",s);return s};/^WHITE_IP/{m=t($2)};/^HOSTNAME/{h=t($2)};END{printf "%s   %s\n",m,h}' $CUR_DIR/env >> /etc/hosts ;
-wait ; sudo awk '!seen[$0]++' /etc/hosts > $TEMP_FILE && wait ; cat $TEMP_FILE > /etc/hosts && sudo chmod 0755 /etc/hosts ; } &&
-#############in_dev################
-  COUNTER_2=$(echo -e "EDITING HOST FILE: $Green SUCCESS $Color_Off") || COUNTER_2=$(echo -e "EDITING HOST FILE: $Red FALSE $Color_Off")
-#############in_dev################
+if ! grep -q "$MAIN_IP" /etc/hosts && ! grep -q "$WHITE_IP" /etc/hosts && ! grep -q "$HOSTNAME" /etc/hosts ; then
+  awk -F '=' 'function t(s){gsub(/[[:space:]]/,"",s);return s};/^MAIN_IP/{m=t($2)};/^HOSTNAME/{h=t($2)};END{printf "%s   %s\n",m,h}' $CUR_DIR/env >> /etc/hosts &&
+  awk -F '=' 'function t(s){gsub(/[[:space:]]/,"",s);return s};/^WHITE_IP/{m=t($2)};/^HOSTNAME/{h=t($2)};END{printf "%s   %s\n",m,h}' $CUR_DIR/env >> /etc/hosts &&
+  wait ; sudo awk '!seen[$0]++' /etc/hosts > $TEMP_FILE && wait ; cat $TEMP_FILE > /etc/hosts && COUNTER_2=$(echo -e "EDITING HOST FILE: $Green SUCCESS $Color_Off") ;
+else
+  if ! grep -q "$MAIN_IP" /etc/hosts && ! grep -q "$WHITE_IP" /etc/hosts && ! grep -q "$HOSTNAME" /etc/hosts ; then
+    COUNTER_2=$(echo -e "EDITING HOST FILE: $Red FAIL $Color_Off")
+  else
+  COUNTER_2=$(echo -e "EDITING HOST FILE: $Green SUCCESS $Color_Off")
+  fi
+fi
 sleep 1 ; echo -e "$Green \n Done $Color_Off"
 
-# Install tools
+# Install tools / atom
 echo -e "$Cyan \n Begin install soft/tools and update system... $Color_Off"
-{ { echo -e "y" | { sudo apt install net-tools mc curl ; sudo apt-get install htop iptables-persistent sshpass gnupg2 ; } ; } ;
-# Install atom
-wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add - ;
-sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list' ;
-{ { echo -e "y" | { sudo apt-get update && sudo apt-get install atom && sudo apt-get install atom-beta ; } ; } ; } ;
+echo "" > $TEMP_FILE ; dpkg -l | grep Midnight >> $TEMP_FILE && dpkg -l | grep net-tools >> $TEMP_FILE && dpkg -l | grep curl >> $TEMP_FILE &&
+dpkg -l | grep htop >> $TEMP_FILE && dpkg -l | grep iptables-persistent >> $TEMP_FILE && dpkg -l | grep sshpass >> $TEMP_FILE && dpkg -l | grep gnupg2 >> $TEMP_FILE && grep atom >> $TEMP_FILE &&
+if ! grep -q "mc" $TEMP_FILE && ! grep -q "curl" $TEMP_FILE && ! grep -q "htop" $TEMP_FILE && ! grep -q "iptables-persistent" $TEMP_FILE && ! grep -q "gnupg2" $TEMP_FILE && ! grep -q "sshpass" $TEMP_FILE && ! grep -q "net-tools" $TEMP_FILE && ! grep -q "atom" $TEMP_FILE ; then
+  { { echo -e "y" | { sudo apt install net-tools mc curl ; sudo apt-get install htop iptables-persistent sshpass gnupg2 ; } ; wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add - ;
+sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list' ; { { echo -e "y" | { sudo apt-get update && sudo apt-get install atom ; } ; } ; } ; } && COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off") ; sleep 1 ; }
+else
+  if ! grep -q "mc" $TEMP_FILE && ! grep -q "curl" $TEMP_FILE && ! grep -q "htop" $TEMP_FILE && ! grep -q "iptables-persistent" $TEMP_FILE && ! grep -q "gnupg2" $TEMP_FILE && ! grep -q "sshpass" $TEMP_FILE && ! grep -q "net-tools" $TEMP_FILE && ! grep -q "atom" $TEMP_FILE ; then
+    COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Red FAIL $Color_Off") ; sleep 1 ;
+  else
+    COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off") ; sleep 1 ;
+  fi
+fi
 # Update/upgrade
 sudo apt update && sudo apt upgrade && sudo apt full-upgrade && sudo apt autoremove ;
-echo -e "$Yellow \n done $Color_Off" ; sleep 1 ; } &&
-#############in_dev################
-COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off") || COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Red FALSE $Color_Off") ;
-#############in_dev################
 
-# Install network via NETPLAN
-{ echo -e "$Cyan \n Your current network $Color_Off" ; sudo lshw -C network ;
+# Install network via NETPLAN echo -e "$Cyan \n Your current network $Color_Off" ; sudo lshw -C network ;
 echo -e "$Cyan \n Begin install network setings with NETPLAN $Color_Off" ; sleep 1 ;
 sudo chmod 0777 /etc/netplan/$NETPLAN_SYSTEM_FILE ;
 # ! - not
 if ! grep -q "MYCONFIG" /etc/netplan/$NETPLAN_SYSTEM_FILE ; then
-  cat $CUR_DIR/$NETPLAN_MY_FILE > /etc/netplan/$NETPLAN_SYSTEM_FILE && sudo systemctl start systemd-networkd && sudo netplan generate && sudo netplan apply && echo -e "$Green \n Done $Color_Off"
+  cat $CUR_DIR/$NETPLAN_MY_FILE > /etc/netplan/$NETPLAN_SYSTEM_FILE && sudo systemctl start systemd-networkd && sudo netplan generate && sudo netplan apply && echo -e "$Green \n Done $Color_Off" && COUNTER_4=$(echo -e "CONFIGURE NETWORK VIA NETPLAN: $Green SUCCESS $Color_Off")
 else
-  echo -e "$Green \n Done $Color_Off"
-fi ; } &&
-#############in_dev################
-COUNTER_4=$(echo -e "CONFIGURE NETWORK VIA NETPLAN: $Green SUCCESS $Color_Off") || COUNTER_4=$(echo -e "CONFIGURE NETWORK VIA NETPLAN: $Red FALSE $Color_Off")
-#############in_dev################
+  if ! grep -q "MYCONFIG" /etc/netplan/$NETPLAN_SYSTEM_FILE ; then
+    COUNTER_4=$(echo -e "CONFIGURE NETWORK VIA NETPLAN: $Red FALSE $Color_Off") ; echo -e "$Red \n Error $Color_Off"
+  else
+    COUNTER_4=$(echo -e "CONFIGURE NETWORK VIA NETPLAN: $Green SUCCESS $Color_Off") ; echo -e "$Green \n Done $Color_Off"
+fi ;
 
 # Fix some problemls with connections
 { echo -e "$Cyan \n Begin fix problem with connections, if persists $Color_Off" ;
@@ -242,9 +252,9 @@ COUNTER_10=$(echo -e "ADDITIONAL CONFIGURATION FOR IPTABLES: $Green SUCCESS $Col
 
 # Fix priviliges
 { echo -e "$Cyan \n Fix priviliges $Color_Off" ;
-sudo chmod 0755 /etc/iptables_rules; sudo chmod 0755 /etc/resolv.conf ;
+sudo chmod 0755 /etc/iptables_rules; sudo chmod 0755 /etc/resolv.conf ; sudo chmod 0755 /etc/hosts ;
 sudo chmod 0755 /etc/netplan/$NETPLAN_SYSTEM_FILE ; echo -e "$Green \n Done $Color_Off" ; sleep 1 ; } &&
-{ stat -c "%a" /etc/iptables_rules /etc/resolv.conf /etc/netplan/$NETPLAN_SYSTEM_FILE > $TEMP_FILE && cat $TEMP_FILE | tr -d '\n' ; } &>/dev/null && if echo "755755755" &>/dev/null ; then
+{ stat -c "%a" /etc/iptables_rules /etc/resolv.conf /etc/netplan/$NETPLAN_SYSTEM_FILE /etc/hosts > $TEMP_FILE && cat $TEMP_FILE | tr -d '\n' ; } &>/dev/null && if echo "755755755755" &>/dev/null ; then
   COUNTER_11=$(echo -e "EDIT CREDENTIALS: $Green SUCCESS $Color_Off")
 else
   COUNTER_11=$(echo -e "EDIT CREDENTIALS: $Red FAIL $Color_Off")
