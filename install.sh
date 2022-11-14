@@ -120,7 +120,8 @@ else
     COUNTER_4=$(echo -e "CONFIGURE NETWORK VIA NETPLAN: $Red FALSE $Color_Off") ; echo -e "$Red \n Error $Color_Off"
   else
     COUNTER_4=$(echo -e "CONFIGURE NETWORK VIA NETPLAN: $Green SUCCESS $Color_Off") ; echo -e "$Green \n Done $Color_Off"
-fi ;
+  fi
+fi
 
 # Fix some problemls with connections
 { echo -e "$Cyan \n Begin fix problem with connections, if persists $Color_Off" ;
