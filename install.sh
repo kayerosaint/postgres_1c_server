@@ -282,7 +282,7 @@ wget https://repo.postgrespro.ru/1c-15/keys/pgpro-repo-add.sh ; sudo chmod 0777 
 # Install BD
 echo "" > $TEMP_FILE ; dpkg -l | grep postgrespro-1c-15 >> $TEMP_FILE &&
 if ! grep -q "postgrespro-1c-15" $TEMP_FILE ; then
-  { echo -e "y" | { sudo apt-get install postgrespro-1c-15 ; } && COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off") ; sleep 1 ; }
+  { sudo apt-get install postgrespro-1c-15 -y && COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off") ; sleep 1 ; }
   if ! grep -q "postgrespro-1c-15" $TEMP_FILE ; then
     echo -e "$Red \n Error $Color_Off" && COUNTER_12=$(echo -e "INSTALL POSTGRES: $Red FALSE $Color_Off")
   else
@@ -303,13 +303,13 @@ echo -e "$Yellow \n Enter password for postgres $Color_Off" ;
 sudo -i -u postgres psql -U postgres -d template1 -c "ALTER USER postgres PASSWORD '$POSTGRES_PASSWORD'" ; history -d $((HISTCMD-1)) ;
 echo -e "$Green \n Done $Color_Off" ; sleep 1 ; }
 
-## Install 1C server / update lib
+## Pre-Install 1C server / update lib
 echo -e "$Cyan \n Pre-Install 1C server $Color_Off"
 echo "" > $TEMP_FILE ; dpkg -l | grep imagemagick >> $TEMP_FILE && dpkg -l | grep unixodbc >> $TEMP_FILE && dpkg -l | grep ttf-mscorefonts-installer >> $TEMP_FILE && dpkg -l | grep libenchant1c2a >> $TEMP_FILE &&
 if ! grep -q "imagemagick" $TEMP_FILE && ! grep -q "unixodbc" $TEMP_FILE && ! grep -q "ttf-mscorefonts-installer" $TEMP_FILE && ! grep -q "libenchant1c2a" $TEMP_FILE ; then
-  { echo -e "y" | { sudo apt-get install imagemagick \ unixodbc \ ttf-mscorefonts-installer \ ; wait ; sudo chmod 0777 /etc/apt/sources.list ; PATH_REP="deb http://cz.archive.ubuntu.com/ubuntu focal main universe" ;
-  echo -e "$Cyan \n Please wait... $Color_Off" ; sudo sed -i "s|$PATH_REP||g" /etc/apt/sources.list && echo "$PATH_REP" >> /etc/apt/sources.list ; sudo apt update && sudo apt install libenchant1c2a ;
-  wait ; } && COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off") ; sleep 1 ; }
+  { sudo apt-get install imagemagick -y \ unixodbc -y \ ttf-mscorefonts-installer -y \ ; wait ; sudo chmod 0777 /etc/apt/sources.list ; PATH_REP="deb http://cz.archive.ubuntu.com/ubuntu focal main universe" ;
+  echo -e "$Cyan \n Please wait... $Color_Off" ; sudo sed -i "s|$PATH_REP||g" /etc/apt/sources.list && echo "$PATH_REP" >> /etc/apt/sources.list ; sudo apt update -y && sudo apt install libenchant1c2a -y ;
+  wait && COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off") ; sleep 1 ; }
   if ! grep -q "imagemagick" $TEMP_FILE && ! grep -q "unixodbc" $TEMP_FILE && ! grep -q "ttf-mscorefonts-installer" $TEMP_FILE && ! grep -q "libenchant1c2a" $TEMP_FILE ; then
     echo -e "$Red \n Error $Color_Off" && COUNTER_13=$(echo -e "PRE-INSTALL 1C: $Red FALSE $Color_Off")
   else
