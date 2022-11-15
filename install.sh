@@ -74,10 +74,10 @@ echo -e "$Green \n Done $Color_Off" ; sleep 1
 # Edit host file
 echo -e "$Cyan \n Editing host file $Color_Off"
 if [ -d "$TEMP_FILE" ]; then
-    echo "$TEMP_FILE already exist!"
-  elif [ ! -d "$TEMP_FILE" ]; then
-    sudo touch $TEMP_FILE && sudo chmod 0777 $TEMP_FILE & echo "" > $TEMP_FILE
-  fi
+  echo "$TEMP_FILE already exist!"
+elif [ ! -d "$TEMP_FILE" ]; then
+  sudo touch $TEMP_FILE && sudo chmod 0777 $TEMP_FILE & echo "" > $TEMP_FILE
+fi
 sudo chmod 0777 /etc/hosts && echo "" > $TEMP_FILE ;
 if ! grep -q "$MAIN_IP" /etc/hosts && ! grep -q "$WHITE_IP" /etc/hosts && ! grep -q "$HOSTNAME" /etc/hosts ; then
   awk -F '=' 'function t(s){gsub(/[[:space:]]/,"",s);return s};/^MAIN_IP/{m=t($2)};/^HOSTNAME/{h=t($2)};END{printf "%s   %s\n",m,h}' $CUR_DIR/env >> /etc/hosts &&
@@ -87,7 +87,7 @@ else
   if ! grep -q "$MAIN_IP" /etc/hosts && ! grep -q "$WHITE_IP" /etc/hosts && ! grep -q "$HOSTNAME" /etc/hosts ; then
     COUNTER_2=$(echo -e "EDITING HOST FILE: $Red FAIL $Color_Off")
   else
-  COUNTER_2=$(echo -e "EDITING HOST FILE: $Green SUCCESS $Color_Off")
+    COUNTER_2=$(echo -e "EDITING HOST FILE: $Green SUCCESS $Color_Off")
   fi
 fi
 sleep 1 ; echo -e "$Green \n Done $Color_Off"
@@ -95,19 +95,19 @@ sleep 1 ; echo -e "$Green \n Done $Color_Off"
 # Install tools / atom
 echo -e "$Cyan \n Begin install soft/tools and update system... $Color_Off"
 echo "" > $TEMP_FILE ; dpkg -l | grep Midnight >> $TEMP_FILE && dpkg -l | grep net-tools >> $TEMP_FILE && dpkg -l | grep curl >> $TEMP_FILE &&
-dpkg -l | grep htop >> $TEMP_FILE && dpkg -l | grep iptables-persistent >> $TEMP_FILE && dpkg -l | grep sshpass >> $TEMP_FILE && dpkg -l | grep gnupg2 >> $TEMP_FILE && grep atom >> $TEMP_FILE &&
+dpkg -l | grep htop >> $TEMP_FILE && dpkg -l | grep iptables-persistent >> $TEMP_FILE && dpkg -l | grep sshpass >> $TEMP_FILE && dpkg -l | grep gnupg2 >> $TEMP_FILE && dpkg -l | grep atom >> $TEMP_FILE && wait &&
 if ! grep -q "mc" $TEMP_FILE && ! grep -q "curl" $TEMP_FILE && ! grep -q "htop" $TEMP_FILE && ! grep -q "iptables-persistent" $TEMP_FILE && ! grep -q "gnupg2" $TEMP_FILE && ! grep -q "sshpass" $TEMP_FILE && ! grep -q "net-tools" $TEMP_FILE && ! grep -q "atom" $TEMP_FILE ; then
-  { { echo -e "y" | { sudo apt install net-tools mc curl ; sudo apt-get install htop iptables-persistent sshpass gnupg2 ; } ; wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add - ;
-sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list' ; { { echo -e "y" | { sudo apt-get update && sudo apt-get install atom ; } ; } ; } ; } && COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off") ; sleep 1 ; }
+  { sudo apt install net-tools -y mc -y curl -y ; sudo apt-get install htop -y iptables-persistent -y sshpass -y gnupg2 -y ; } ; wget -qO - https://packagecloud.io/AtomEditor/atom/gpgkey | sudo apt-key add - ;
+sudo sh -c 'echo "deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main" > /etc/apt/sources.list.d/atom.list' ; { sudo apt-get update -y && sudo apt-get install atom -y ; } && wait && COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off")
 else
   if ! grep -q "mc" $TEMP_FILE && ! grep -q "curl" $TEMP_FILE && ! grep -q "htop" $TEMP_FILE && ! grep -q "iptables-persistent" $TEMP_FILE && ! grep -q "gnupg2" $TEMP_FILE && ! grep -q "sshpass" $TEMP_FILE && ! grep -q "net-tools" $TEMP_FILE && ! grep -q "atom" $TEMP_FILE ; then
-    COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Red FAIL $Color_Off") ; sleep 1 ;
+    COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Red FAIL $Color_Off")
   else
-    COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off") ; sleep 1 ;
+    COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off")
   fi
 fi
 # Update/upgrade
-sudo apt update && sudo apt upgrade && sudo apt full-upgrade && sudo apt autoremove ;
+sudo apt update -y && sudo apt upgrade -y && sudo apt full-upgrade -y && sudo apt autoremove -y ;
 
 # Install network via NETPLAN echo -e "$Cyan \n Your current network $Color_Off" ; sudo lshw -C network ;
 echo -e "$Cyan \n Begin install network setings with NETPLAN $Color_Off" ; sleep 1 ;
@@ -121,52 +121,51 @@ else
   else
     COUNTER_4=$(echo -e "CONFIGURE NETWORK VIA NETPLAN: $Green SUCCESS $Color_Off") ; echo -e "$Green \n Done $Color_Off"
   fi
-fi
+fi ;
 
 # Fix some problemls with connections
-{ echo -e "$Cyan \n Begin fix problem with connections, if persists $Color_Off" ;
+echo -e "$Cyan \n Begin fix problem with connections, if persists $Color_Off" ;
 sleep 1 ; wget -q --spider http://ya.ru ;
 if [ $? -eq 0 ]; then
-    echo -e "$Green \n Everything OK! $Color_Off"
+  echo -e "$Green \n Everything OK! $Color_Off" && COUNTER_5=$(echo -e "NETWORK CHECK: $Green SUCCESS $Color_Off")
 else
   echo -e "$Red \n No connection, begin fixing... $Color_Off" ; sleep 1 ;
   sudo ifconfig $IFACE up && sudo ip addr add $MAIN_IP/$MASK dev $IFACE && ip r sh && sudo route add default gw $GATEWAY && sudo chmod 0777 /etc/resolv.conf ;
-  if [ -d "$TEMP_FILE" ]; then
-    echo "$TEMP_FILE already exist!"
-  elif [ ! -d "$TEMP_FILE" ]; then
-    sudo touch $TEMP_FILE && sudo chmod 0777 $TEMP_FILE
+  echo "" > $TEMP_FILE && echo "nameserver $DNS_NAMESERVERS" >> /etc/resolv.conf && sudo awk '!seen[$0]++' /etc/resolv.conf > $TEMP_FILE && cat $TEMP_FILE > /etc/resolv.conf ;
+  if [ $? -eq 0 ]; then
+    echo -e "$Green \n Everything OK! $Color_Off" && COUNTER_5=$(echo -e "NETWORK CHECK: $Green SUCCESS $Color_Off")
+  else
+    echo -e "$Green \n Connection fail! $Color_Off" && COUNTER_5=$(echo -e "NETWORK CHECK: $Red FALSE $Color_Off")
   fi
-  echo "" > $TEMP_FILE && echo "nameserver $DNS_NAMESERVERS" >> /etc/resolv.conf && sudo awk '!seen[$0]++' /etc/resolv.conf > $TEMP_FILE && cat $TEMP_FILE > /etc/resolv.conf
 fi
 # Restart network manager
 echo -e "$Cyan \n restart network manager... $Color_Off" ;
-sudo systemctl restart NetworkManager ; sleep 1 ; echo -e "$Green \n Done $Color_Off" ; } &&
-#############in_dev################
-COUNTER_5=$(echo -e "NETWORK CHECK: $Green SUCCESS $Color_Off") || COUNTER_5=$(echo -e "NETWORK CHECK: $Red FALSE $Color_Off")
-#############in_dev################
+make net ; sleep 1 ; echo -e "$Green \n Done $Color_Off" ;
 
 # Install ssh
 { echo -e "$Cyan \n Begin install SSH... $Color_Off" ;
 sleep 1 ; sudo apt install openssh-server && sudo /lib/systemd/systemd-sysv-install enable ssh ;
 # ! - not
-if ! grep -q "$SSH_PORT" /etc/ssh/sshd_config ; then
+if ! grep -q "$SSH_PORT" /etc/ssh/sshd_config && ! grep -q "PermitRootLogin no" /etc/ssh/sshd_config ; then
   sudo sed -i "s/#Port 22/Port $SSH_PORT/" /etc/ssh/sshd_config
   sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
   echo -e "$Green \n Done $Color_Off"; sleep 1
+  if ! grep -q "$SSH_PORT" /etc/ssh/sshd_config && ! grep -q "PermitRootLogin no" /etc/ssh/sshd_config ; then
+    echo -e "$Red \n Error $Color_Off" && COUNTER_6=$(echo -e "SSH INSTALLATION: $Red FALSE $Color_Off")
+  else
+    echo -e "$Green \n Done $Color_Off" ; sleep 1 ; COUNTER_6=$(echo -e "SSH INSTALLATION: $Green SUCCESS $Color_Off")
+  fi
 else
-  echo -e "$Green \n Done $Color_Off"; sleep 1
+  echo -e "$Green \n Done $Color_Off" ; sleep 1 ; COUNTER_6=$(echo -e "SSH INSTALLATION: $Green SUCCESS $Color_Off")
 fi
 
 # SSH generation
 echo -e "$Green \n Begin generation... $Color_Off" ;
 # Force overwrite enable!
-sleep 1 ; echo -e 'y\n' | ssh-keygen -f /home/$USERNAME_SSH/.ssh/rsa-$RSA_NAME -t rsa -N '' && sudo systemctl restart sshd ;
+sleep 1 ; echo -e 'y\n' | ssh-keygen -f /home/$USERNAME_SSH/.ssh/rsa-$RSA_NAME -t rsa -N '' && make ssh ;
 echo -e "$Green \n Done $Color_Off" ;
 echo -e "$Green \n copy key on server... $Color_Off"; sleep 1 ; sudo chmod +x $CUR_DIR/ssh_pass.sh ;
 { S_PASS="$KEY_SSH" SSH_ASKPASS="$CUR_DIR/ssh_pass.sh" setsid -w ssh-copy-id -p $SSH_PORT -i /home/$USERNAME_SSH/.ssh/rsa-$RSA_NAME.pub $USERNAME_SSH@$MAIN_IP ; } ; sudo chmod 0400 $CUR_DIR/ssh_pass.sh ; echo -e "$Green \n Done $Color_Off" ; } &&
-#############in_dev################
-COUNTER_6=$(echo -e "SSH INSTALLATION: $Green SUCCESS $Color_Off") || COUNTER_6=$(echo -e "SSH INSTALLATION: $Red FALSE $Color_Off")
-#############in_dev################
 
 # Login setup
 { echo -e "$Cyan \n Continue configure SSH... $Color_Off" ;
@@ -174,7 +173,7 @@ sudo sed -i 's/#PubkeyAuthentication no/PubkeyAuthentication yes/' /etc/ssh/sshd
 sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config ; sudo sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config ;
 sleep 1 ; echo -e "$Green \n Done $Color_Off" ;
 # Restart ssh
-echo -e "$Cyan \n Begin restart ssh... $Color_Off" ; sleep 1 ; sudo systemctl restart ssh && echo -e "$Green \n Done $Color_Off" ; sleep 1 ;
+echo -e "$Cyan \n Begin restart ssh... $Color_Off" ; sleep 1 ; make ssh && echo -e "$Green \n Done $Color_Off" ; sleep 1 ;
 
 # Login background check/out
 echo -e "$Cyan \n Try login via ssh... $Color_Off" ;
@@ -199,15 +198,18 @@ elif ! grep -q "IdentityFile /home/$USERNAME_SSH/.ssh/rsa-$RSA_NAME" /home/$USER
   echo "IdentityFile /home/$USERNAME_SSH/.ssh/rsa-$RSA_NAME" >> /home/$USERNAME_SSH/.ssh/config ;
 elif ! grep -q "Port $SSH_PORT" /home/$USERNAME_SSH/.ssh/config; then
   echo "Port $SSH_PORT" >> /home/$USERNAME_SSH/.ssh/config ; echo -e "$Green \n Done $Color_Off" ; sleep 1 ;
+  if ! grep -q "Host $RSA_NAME" /home/$USERNAME_SSH/.ssh/config && ! grep -q "User $USERNAME_SSH" /home/$USERNAME_SSH/.ssh/config && ! grep -q "HostName $MAIN_IP" /home/$USERNAME_SSH/.ssh/config &&
+  ! grep -q "IdentityFile /home/$USERNAME_SSH/.ssh/rsa-$RSA_NAME" /home/$USERNAME_SSH/.ssh/config && ! grep -q "Port $SSH_PORT" /home/$USERNAME_SSH/.ssh/config ; then
+    COUNTER_8=$(echo -e "SSH CONFIGURATION: $Red FALSE $Color_Off")
+  else
+    echo -e "$Green \n Done $Color_Off" ; sleep 1 ; COUNTER_8=$(echo -e "SSH CONFIGURATION: $Green SUCCESS $Color_Off")
+  fi
 else
-  echo -e "$Green \n Done $Color_Off" ; sleep 1
-fi ; } &&
-#############in_dev################
-COUNTER_8=$(echo -e "SSH CONFIGURATION: $Green SUCCESS $Color_Off") || COUNTER_8=$(echo -e "SSH CONFIGURATION: $Red FALSE $Color_Off")
-#############in_dev################
+  echo -e "$Green \n Done $Color_Off" ; sleep 1 ; COUNTER_8=$(echo -e "SSH CONFIGURATION: $Green SUCCESS $Color_Off")
+fi ; }
 
 #Configure iptables_firewall
-{ echo -e "$Cyan \n Begin configure IPTABLES FIREWALL... $Color_Off" ;
+echo -e "$Cyan \n Begin configure IPTABLES FIREWALL... $Color_Off" ;
 # Check path
 if [ -d "$IPTABLES_PATH" ]; then
   echo "$IPTABLES_PATH already exist!"
@@ -224,8 +226,13 @@ elif ! grep -q "$PORTS_2" $IPTABLES_PATH; then
   # path rules
   echo "/sbin/iptables-save > /etc/iptables_rules" >> $IPTABLES_PATH ;
   echo -e "$Green \n Done $Color_Off" ; sleep 1 ;
+  if ! grep -q "$PORTS_1" $IPTABLES_PATH && ! grep -q "$PORTS_2" $IPTABLES_PATH ; then
+    echo -e "$Red \n Error $Color_Off" ; COUNTER_9=$(echo -e "IPTABLES SETUP: $Red FALSE $Color_Off") ; sleep 1
+  else
+    echo -e "$Green \n Done $Color_Off" ; COUNTER_9=$(echo -e "IPTABLES SETUP: $Green SUCCESS $Color_Off") ; sleep 1
+  fi
 else
-  echo -e "$Green \n Done $Color_Off" ; sleep 1 ;
+  echo -e "$Green \n Done $Color_Off" ; COUNTER_9=$(echo -e "IPTABLES SETUP: $Green SUCCESS $Color_Off") ; sleep 1
 fi
 
 # Check rules
@@ -235,10 +242,7 @@ if [ -d "/run/xtables.lock" ]; then
 elif [ ! -d "/run/xtables.lock" ]; then
   sudo touch /run/xtables.lock
 fi
-sudo /bin/bash $IPTABLES_PATH && sudo iptables -L -v -n ; sleep 1 ; echo -e "$Green \n Done $Color_Off" ; sleep 1 ; } &&
-#############in_dev################
-COUNTER_9=$(echo -e "IPTABLES SETUP: $Green SUCCESS $Color_Off") || COUNTER_9=$(echo -e "IPTABLES SETUP: $Red FALSE $Color_Off")
-#############in_dev################
+sudo /bin/bash $IPTABLES_PATH && sudo iptables -L -v -n ; sleep 1 ; echo -e "$Green \n Done $Color_Off" ; sleep 1 ;
 
 # Save rules
 { echo -e "$Cyan \n Save IPTABLES rules... $Color_Off" ;
@@ -246,94 +250,110 @@ sudo netfilter-persistent save && sudo /sbin/iptables-save > /etc/iptables_rules
 
 # Additional configure for iptables
 echo -e "$Cyan \n Additional configure for iptables $Color_Off" ;
-sudo depmod -a && sudo modprobe ip_tables && sudo iptables -nL && echo -e "$Green \n Done $Color_Off" ; sleep 1 ; } &&
-#############in_dev################
-COUNTER_10=$(echo -e "ADDITIONAL CONFIGURATION FOR IPTABLES: $Green SUCCESS $Color_Off") || COUNTER_10=$(echo -e "ADDITIONAL CONFIGURATION FOR IPTABLES: $Red FALSE $Color_Off")
-#############in_dev################
+sudo depmod -a && sudo modprobe ip_tables && sudo iptables -nL && sleep 1 ; } &&
+
+# Set locale
+#{ echo -e "$Cyan \n Reconfigure locales/example "ru_RU.UTF-8 UTF-8" $Color_Off" ; sleep 1 ; sudo dpkg-reconfigure locales ;
+#echo -e "$Green \n Done $Color_Off" ; } && wait &&
+if ! grep -q "LANG=ru_RU.UTF-8" /etc/default/locale && ! grep -q "Etc/GMT+5" /etc/timezone ; then
+  make locale ;
+  if ! grep -q "LANG=ru_RU.UTF-8" /etc/default/locale && ! grep -q "Etc/GMT+5" /etc/timezone ; then
+    echo -e "$Red \n Error $Color_Off" && COUNTER_10=$(echo -e "RECONFIGURE LOCALES: $Red FALSE $Color_Off")
+  else
+    echo -e "$Green \n Done $Color_Off" && COUNTER_10=$(echo -e "RECONFIGURE LOCALES: $Green SUCCESS $Color_Off")
+  fi
+else
+  echo -e "$Green \n Done $Color_Off" && COUNTER_10=$(echo -e "RECONFIGURE LOCALES: $Green SUCCESS $Color_Off")
+fi
 
 # Fix priviliges
 { echo -e "$Cyan \n Fix priviliges $Color_Off" ;
 sudo chmod 0755 /etc/iptables_rules; sudo chmod 0755 /etc/resolv.conf ; sudo chmod 0755 /etc/hosts ;
-sudo chmod 0755 /etc/netplan/$NETPLAN_SYSTEM_FILE ; echo -e "$Green \n Done $Color_Off" ; sleep 1 ; } &&
-{ stat -c "%a" /etc/iptables_rules /etc/resolv.conf /etc/netplan/$NETPLAN_SYSTEM_FILE /etc/hosts > $TEMP_FILE && cat $TEMP_FILE | tr -d '\n' ; } &>/dev/null && if echo "755755755755" &>/dev/null ; then
+sudo chmod 0755 /etc/netplan/$NETPLAN_SYSTEM_FILE ; sudo chmod 0644 /etc/default/locale ; echo -e "$Green \n Done $Color_Off" ; sleep 1 ; } &&
+{ stat -c "%a" /etc/iptables_rules /etc/resolv.conf /etc/netplan/$NETPLAN_SYSTEM_FILE /etc/hosts /etc/default/locale > $TEMP_FILE && cat $TEMP_FILE | tr -d '\n' ; } &>/dev/null && if echo "755755755755644" &>/dev/null ; then
   COUNTER_11=$(echo -e "EDIT CREDENTIALS: $Green SUCCESS $Color_Off")
 else
   COUNTER_11=$(echo -e "EDIT CREDENTIALS: $Red FAIL $Color_Off")
 fi
 
-# Set locale
-{ echo -e "$Cyan \n Reconfigure locales/example "ru_RU.UTF-8 UTF-8" $Color_Off" ; sleep 1 ; sudo dpkg-reconfigure locales ;
-echo -e "$Green \n Done $Color_Off" ; sleep 1 ; } &&
-#############in_dev################
-COUNTER_12=$(echo -e "RECONFIGURE LOCALES: $Green SUCCESS $Color_Off") || COUNTER_12=$(echo -e "RECONFIGURE LOCALES: $Red FALSE $Color_Off")
-#############in_dev################
-
 # Instal postgres for 1c.postgres.ru
 { echo -e "$Cyan \n Instal postgres $Color_Off"
 wget https://repo.postgrespro.ru/1c-15/keys/pgpro-repo-add.sh ; sudo chmod 0777 $CUR_DIR/pgpro-repo-add.sh & sudo sh pgpro-repo-add.sh ;
 # Install BD
-sudo apt-get install postgrespro-1c-15 ;
+echo "" > $TEMP_FILE ; dpkg -l | grep postgrespro-1c-15 >> $TEMP_FILE &&
+if ! grep -q "postgrespro-1c-15" $TEMP_FILE ; then
+  { echo -e "y" | { sudo apt-get install postgrespro-1c-15 ; } && COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off") ; sleep 1 ; }
+  if ! grep -q "postgrespro-1c-15" $TEMP_FILE ; then
+    echo -e "$Red \n Error $Color_Off" && COUNTER_12=$(echo -e "INSTALL POSTGRES: $Red FALSE $Color_Off")
+  else
+    echo -e "$Green \n Done $Color_Off" && COUNTER_12=$(echo -e "INSTALL POSTGRES: $Green SUCCESS $Color_Off")
+  fi
+else
+  echo -e "$Green \n Done $Color_Off" && COUNTER_12=$(echo -e "INSTALL POSTGRES: $Green SUCCESS $Color_Off")
+fi
 # Autorun enable
 sudo systemctl enable postgrespro-1c-15 ;
 # Stop service
 sudo systemctl stop postgrespro-1c-15 ;
 { sudo chmod 0777 /var/lib/pgpro/1c-15/data/ && sudo rm -rf /var/lib/pgpro/1c-15/data/* ; sudo /opt/pgpro/1c-15/bin/pg-setup initdb --tune=1c --locale=ru_RU.UTF-8 ;
-sudo systemctl start postgrespro-1c-15 ; echo -e "$Green \n Done $Color_Off" ; } && wait ;
+make postgres ; echo -e "$Green \n Done $Color_Off" ; } && wait ;
 
 # Set password for postgres
 echo -e "$Yellow \n Enter password for postgres $Color_Off" ;
-sudo -i -u postgres psql -U postgres -d template1 -c "ALTER USER postgres PASSWORD '$POSTGRES_PASSWORD'" \; history -d $((HISTCMD-1)) ;
-echo -e "$Green \n Done $Color_Off" ; sleep 1 ; } &&
-#############in_dev################
-COUNTER_13=$(echo -e "INSTALL POSTGRES: $Green SUCCESS $Color_Off") || COUNTER_13=$(echo -e "INSTALL POSTGRES: $Red FALSE $Color_Off")
-#############in_dev################
+sudo -i -u postgres psql -U postgres -d template1 -c "ALTER USER postgres PASSWORD '$POSTGRES_PASSWORD'" ; history -d $((HISTCMD-1)) ;
+echo -e "$Green \n Done $Color_Off" ; sleep 1 ; }
 
-## Install 1C server
-{ echo -e "$Cyan \n Install 1C server $Color_Off" ;
-sudo apt-get install imagemagick \ unixodbc \ ttf-mscorefonts-installer \ ; wait ; sudo chmod 0777 /etc/apt/sources.list ;
-PATH_REP="deb http://cz.archive.ubuntu.com/ubuntu focal main universe" ;
-# Update lib
-echo -e "$Cyan \n Please wait... $Color_Off" ; sudo sed -i "s|$PATH_REP||g" /etc/apt/sources.list && echo "$PATH_REP" >> /etc/apt/sources.list ;
-sudo apt update && sudo apt install libenchant1c2a ; wait ; } &&
-#############in_dev################
-COUNTER_14=$(echo -e "INSTALL 1C: $Green SUCCESS $Color_Off") || COUNTER_14=$(echo -e "INSTALL 1C: $Red FALSE $Color_Off")
-#############in_dev################
+## Install 1C server / update lib
+echo -e "$Cyan \n Pre-Install 1C server $Color_Off"
+echo "" > $TEMP_FILE ; dpkg -l | grep imagemagick >> $TEMP_FILE && dpkg -l | grep unixodbc >> $TEMP_FILE && dpkg -l | grep ttf-mscorefonts-installer >> $TEMP_FILE && dpkg -l | grep libenchant1c2a >> $TEMP_FILE &&
+if ! grep -q "imagemagick" $TEMP_FILE && ! grep -q "unixodbc" $TEMP_FILE && ! grep -q "ttf-mscorefonts-installer" $TEMP_FILE && ! grep -q "libenchant1c2a" $TEMP_FILE ; then
+  { echo -e "y" | { sudo apt-get install imagemagick \ unixodbc \ ttf-mscorefonts-installer \ ; wait ; sudo chmod 0777 /etc/apt/sources.list ; PATH_REP="deb http://cz.archive.ubuntu.com/ubuntu focal main universe" ;
+  echo -e "$Cyan \n Please wait... $Color_Off" ; sudo sed -i "s|$PATH_REP||g" /etc/apt/sources.list && echo "$PATH_REP" >> /etc/apt/sources.list ; sudo apt update && sudo apt install libenchant1c2a ;
+  wait ; } && COUNTER_3=$(echo -e "INSTALL SOFT/TOOLS: $Green SUCCESS $Color_Off") ; sleep 1 ; }
+  if ! grep -q "imagemagick" $TEMP_FILE && ! grep -q "unixodbc" $TEMP_FILE && ! grep -q "ttf-mscorefonts-installer" $TEMP_FILE && ! grep -q "libenchant1c2a" $TEMP_FILE ; then
+    echo -e "$Red \n Error $Color_Off" && COUNTER_13=$(echo -e "PRE-INSTALL 1C: $Red FALSE $Color_Off")
+  else
+    echo -e "$Green \n Done $Color_Off" && COUNTER_13=$(echo -e "PRE-INSTALL 1C: $Green SUCCESS $Color_Off")
+  fi
+else
+  echo -e "$Green \n Done $Color_Off" && COUNTER_13=$(echo -e "PRE-INSTALL 1C: $Green SUCCESS $Color_Off")
+fi
 
-echo -e "$Yellow \n CHECK SCRIPT BEFORE INSTALLATION $Color_Off"
+echo -e "$Yellow \n CHECK SCRIPT $Color_Off"
 COUNTER=1
-while [  $COUNTER -lt 15 ]; do
+while [  $COUNTER -lt 14 ]; do
     if [[ $COUNTER == 1 ]] ; then
-       echo "$COUNTER_1" ; sleep 1
+       echo "$COUNTER_1" ; sleep 0.5
     elif [[ $COUNTER == 2 ]] ; then
-       echo "$COUNTER_2" ; sleep 1
+       echo "$COUNTER_2" ; sleep 0.5
     elif [[ $COUNTER == 3 ]] ; then
-       echo "$COUNTER_3" ; sleep 1
+       echo "$COUNTER_3" ; sleep 0.5
     elif [[ $COUNTER == 4 ]] ; then
-       echo "$COUNTER_4" ; sleep 1
+       echo "$COUNTER_4" ; sleep 0.5
     elif [[ $COUNTER == 5 ]] ; then
-       echo "$COUNTER_5" ; sleep 1
+       echo "$COUNTER_5" ; sleep 0.5
     elif [[ $COUNTER == 6 ]] ; then
-       echo "$COUNTER_6" ; sleep 1
+       echo "$COUNTER_6" ; sleep 0.5
     elif [[ $COUNTER == 7 ]] ; then
-       echo "$COUNTER_7" ; sleep 1
+       echo "$COUNTER_7" ; sleep 0.5
     elif [[ $COUNTER == 8 ]] ; then
-       echo "$COUNTER_8" ; sleep 1
+       echo "$COUNTER_8" ; sleep 0.5
     elif [[ $COUNTER == 9 ]] ; then
-       echo "$COUNTER_9" ; sleep 1
+       echo "$COUNTER_9" ; sleep 0.5
     elif [[ $COUNTER == 10 ]] ; then
-       echo "$COUNTER_10" ; sleep 1
+       echo "$COUNTER_10" ; sleep 0.5
     elif [[ $COUNTER == 11 ]] ; then
-       echo "$COUNTER_11" ; sleep 1
+       echo "$COUNTER_11" ; sleep 0.5
     elif [[ $COUNTER == 12 ]] ; then
-       echo "$COUNTER_12" ; sleep 1
+       echo "$COUNTER_12" ; sleep 0.5
     elif [[ $COUNTER == 13 ]] ; then
-       echo "$COUNTER_13" ; sleep 1
+       echo "$COUNTER_13" ; sleep 0.5
     fi
     let COUNTER=COUNTER+1
 done
 
 # Begin install
-DIST=$(awk -F '=' 'function t(s){gsub(/[[:space:]]/,"",s);return s};/^DIST/{v=t($2)};END{printf "%s\n",v}' $CUR_DIR/env) && INST=$(sudo tar zxvf $DIST | grep setup-*) && sudo ./$INST
-sudo sed -i "s|$PATH_REP|#$PATH_REP|g" /etc/apt/sources.list | sudo sed -i "s|##$PATH_REP|#$PATH_REP|g" /etc/apt/sources.list
+#DIST=$(awk -F '=' 'function t(s){gsub(/[[:space:]]/,"",s);return s};/^DIST/{v=t($2)};END{printf "%s\n",v}' $CUR_DIR/env) && INST=$(sudo tar zxvf $DIST | grep setup-*) && sudo ./$INST
+#sudo sed -i "s|$PATH_REP|#$PATH_REP|g" /etc/apt/sources.list | sudo sed -i "s|##$PATH_REP|#$PATH_REP|g" /etc/apt/sources.list
 
 #############in_dev################
