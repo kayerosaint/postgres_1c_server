@@ -27,7 +27,7 @@ postgres:
 
 # manual dump
 pg_dump:
-	cd /tmp/ && sudo -u postgres pg_dump -Fc -c test | gzip > test.dump.gz
+	cd /tmp/ && sudo -u postgres pg_dump -Fc -c test | gzip > test_$(date "+%Y-%m-%d").sql.gz
 
 # manual restore
 pg_restore:
