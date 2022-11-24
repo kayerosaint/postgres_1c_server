@@ -255,7 +255,7 @@ sudo depmod -a && sudo modprobe ip_tables && sudo iptables -nL && sleep 1 ; } &&
 # Set locale
 #{ echo -e "$Cyan \n Reconfigure locales/example "ru_RU.UTF-8 UTF-8" $Color_Off" ; sleep 1 ; sudo dpkg-reconfigure locales ;
 #echo -e "$Green \n Done $Color_Off" ; } && wait &&
-if ! grep -q "LANG=ru_RU.UTF-8" /etc/default/locale && ! grep -q "Etc/GMT+5" /etc/timezone ; then
+if ! grep -q "LANG=ru_RU.UTF-8" /etc/default/locale ; ! grep -q "Etc/GMT+5" /etc/timezone ; then
   make locale ;
   if ! grep -q "LANG=ru_RU.UTF-8" /etc/default/locale && ! grep -q "Etc/GMT+5" /etc/timezone ; then
     echo -e "$Red \n Error $Color_Off" && COUNTER_10=$(echo -e "RECONFIGURE LOCALES: $Red FALSE $Color_Off")
@@ -319,7 +319,7 @@ else
   echo -e "$Green \n Done $Color_Off" && COUNTER_13=$(echo -e "PRE-INSTALL 1C: $Green SUCCESS $Color_Off")
 fi
 
-echo -e "$Yellow \n CHECK SCRIPT $Color_Off"
+echo -e "$Yellow \n CHECK CONFIGURATION $Color_Off"
 COUNTER=1
 while [  $COUNTER -lt 14 ]; do
     if [[ $COUNTER == 1 ]] ; then
@@ -353,7 +353,26 @@ while [  $COUNTER -lt 14 ]; do
 done
 
 # Begin install
-#DIST=$(awk -F '=' 'function t(s){gsub(/[[:space:]]/,"",s);return s};/^DIST/{v=t($2)};END{printf "%s\n",v}' $CUR_DIR/env) && INST=$(sudo tar zxvf $DIST | grep setup-*) && sudo ./$INST
-#sudo sed -i "s|$PATH_REP|#$PATH_REP|g" /etc/apt/sources.list | sudo sed -i "s|##$PATH_REP|#$PATH_REP|g" /etc/apt/sources.list
+DIST=$(awk -F '=' 'function t(s){gsub(/[[:space:]]/,"",s);return s};/^DIST/{v=t($2)};END{printf "%s\n",v}' $CUR_DIR/env) && INST=$(sudo tar zxvf $DIST | grep setup-*) && sudo ./$INST && wait &&
+sudo sed -i "s|$PATH_REP|#$PATH_REP|g" /etc/apt/sources.list && sudo sed -i "s|##$PATH_REP|#$PATH_REP|g" /etc/apt/sources.list
 
-#############in_dev################
+# Create symlink
+ls /opt/1cv8/x86_64/* | grep srv1cv8* > $TEMP_FILE && ls /opt/1cv8/x86_64/ | grep 8.* >> $TEMP_FILE && S_LINK=$(awk 'FNR==2 && /8.*/{print $1}' $TEMP_FILE) && S_LINK_2=$(awk 'FNR==1 && /8.*/{print $1}' $TEMP_FILE) && sudo systemctl link /opt/1cv8/x86_64/$S_LINK/$S_LINK_2 &&
+
+# Start service
+sudo systemctl start srv1cv8-$S_LINK@default.service &&
+cmd="sudo systemctl status srv1cv8-$S_LINK@default.service >> $TEMP_FILE &";
+_evalBgr "${cmd}"; sleep 1 ;
+export_data=$(<$TEMP_FILE); grep -q "active (running)" $TEMP_FILE; [ $? -eq 0 ] && echo ">>> SERVER ACTIVE <<<" || echo "??? SERVER DOWN ???" ; sleep 2  &&
+sudo systemctl enable srv1cv8-$S_LINK@default.service
+
+### Hasp installation, this section in development! ###
+# lsusb | grep -i hasp
+# apt-get install make libc6-i386
+# mkdir /tmp/hasp ; cd /tmp/hasp
+# wget https://download.etersoft.ru/pub/Etersoft/HASP/stable/x86_64/Ubuntu/18.04/haspd-modules_7.90-eter2ubuntu_amd64.deb
+# wget https://download.etersoft.ru/pub/Etersoft/HASP/stable/x86_64/Ubuntu/18.04/haspd_7.90-eter2ubuntu_amd64.deb
+# dpkg -i haspd*.deb
+# systemctl enable haspd
+# systemctl start haspd
+# systemctl status haspd
